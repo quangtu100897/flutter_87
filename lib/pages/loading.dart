@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import '../services/world_time.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+//import 'package:worldtime/services/world_time.dart';
 
 class Loading extends StatefulWidget {
   const Loading({Key? key}) : super(key: key);
@@ -10,30 +13,33 @@ class Loading extends StatefulWidget {
 }
 
 class _LoadingState extends State<Loading> {
-  void getTime() async {
-    Response response = await get(
-        Uri.parse('https://worldtimeapi.org/api/timezone/Asia/Ho_Chi_Minh'));
-    Map data = jsonDecode(response.body);
-    //print(data);
-    String datetime = data['datetime'];
-    String offset = data['utc_offset'];
-    offset = offset.substring(0, 3);
-    //print(datetime);
-    print(offset);
-    DateTime now = DateTime.parse(datetime);
-    now = now.add(Duration(hours: int.parse(offset)));
-    print(now);
+  void setupWorldTime() async {
+    WorldTime instance = WorldTime(
+        location: 'Berlin', flag: 'germany.png', url: 'Europe/Berlin');
+    await instance.getTime();
+    //print(instance.time);
+    Navigator.pushReplacementNamed(context, "/home", arguments: {
+      'location': instance.location,
+      'flag': instance.flag,
+      'time': instance.time,
+      'isDayTime': instance.isDaytime,
+    });
   }
 
   void initState() {
     super.initState();
-    getTime();
+    setupWorldTime();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Text('loading screen'),
-    );
+        backgroundColor: Colors.orange[900],
+        body: Center(
+          child: SpinKitSpinningLines(
+            color: Colors.white,
+            size: 200.0,
+          ),
+        ));
   }
 }
